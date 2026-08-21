@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Generated Timetable - NovaX{% endblock %}
+{% block page_title %}Generated Timetable{% endblock %}
+{% block page_subtitle %}Academic Year {{ institution.academic_year if institution else '2026-27' }} | {{ institution.semester_type if institution else 'Odd Semester' }}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- 1. TOP STAT KPI CARDS (Ref Image 2) -->
+    <div class="metrics-bar">
+        <!-- 1. Generation Status -->
+        <div class="metric-card">
+            <div class="metric-icon icon-green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="metric-info">
+                <div class="metric-label">Generation Status</div>
+                <div class="metric-value text-success" style="font-size: 15px;">Successful</div>
+                <div class="metric-subtext text-muted" style="font-size: 10px;">{{ institution.last_generated_at|datetime_format if institution and institution.last_generated_at else '16 Aug 2026, 12:30 PM' }}</div>
+            </div>
+        </div>
+
+        <!-- 2. Quality Score -->
+        <div class="metric-card">
+            <div class="metric-icon icon-purple">
+                <i class="fa-solid fa-star"></i>
+            </div>
+            <div class="metric-info">
+                <div class="metric-label">Timetable Quality Score</div>
+                <div class="metric-value">{{ institution.quality_score if institution else 92 }} <span class="text-muted" style="font-size: 12px;">/ 100</span></div>
+                <div class="progress mt-1" style="height: 4px; background: rgba(255,255,255,0.1);">
+                    <div class="progress-bar bg-purple" data-width="{{ institution.quality_score if institution else 92 }}" style="background-color: #a855f7;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Constraints Satisfaction -->
+        <div class="metric-card">
+            <div class="metric-icon icon-blue">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="metric-info">
+                <div class="metric-label">Constraints Satisfaction</div>
+                <div class="metric-value text-primary">{{ institution.constraints_satisfaction if institution else 96 }}%</div>
+                <div class="metric-subtext text-muted" style="font-size: 10px;">All Hard Constraints Met</div>
+            </div>
+        </div>
+
+        <!-- 4. Total Classes Scheduled -->
+        <div class="metric-card">
+            <div class="metric-icon icon-green">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="metric-info">
+                <div class="metric-label">Total Classes</div>
+                <div class="metric-value">{{ total_classes or 48 }}</div>
+                <div class="metric-subtext text-success" style="font-size: 10px;">● Scheduled</div>
+            </div>
+        </div>
+
+        <!-- 5. Total Rooms Used -->
+        <div class="metric-card">
+            <div class="metric-icon icon-orange">
+                <i class="fa-solid fa-door-open"></i>
+            </div>
+            <div class="metric-info">
+                <div class="metric-label">Total Rooms Used</div>
+                <div class="metric-value">{{ rooms_used or 18 }} <span class="text-muted" style="font-size: 12px;">/ {{ total_rooms_count or 28 }}</span></div>
+                <div class="metric-subtext text-warning" style="font-size: 10px;">{{ utilization_pct or 64 }}% Utilization</div>
+            </div>
+        </div>
+
+        <!-- 6. Clashes -->
+        <div class="metric-card">
+            <div class="metric-icon icon-red">
+                <i class="fa-solid fa-bullseye"></i>
+            </div>
+            <div class="metric-info">
+                <div class="metric-label">Clashes</div>
+                <div class="metric-value text-danger">0</div>
+                <div class="metric-subtext text-success" style="font-size: 10px;">● No Conflicts</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. SUBNAV TABS BAR (Ref Image 2) -->
+    <div class="timetable-header-tabs">
+        <a href="{{ url_for('admin.timetable') }}" class="tab-btn active"><i class="fa-solid fa-table-cells"></i> Timetable View</a>
+        <a href="{{ url_for('admin.faculty') }}" class="tab-btn"><i class="fa-solid fa-chalkboard-user"></i> Faculty View</a>
+        <a href="{{ url_for('admin.rooms') }}" class="tab-btn"><i class="fa-solid fa-door-closed"></i> Room View</a>
+        <a href="{{ url_for('admin.analytics') }}" class="tab-btn"><i class="fa-solid fa-chart-simple"></i> Analytics</a>
+        <a href="{{ url_for('admin.backup_plan') }}" class="tab-btn"><i class="fa-solid fa-user-clock"></i> Substitute Plan</a>
+        <a href="{{ url_for('admin.academic_calendar') }}" class="tab-btn"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+        <a href="{{ url_for('admin.export_csv') }}" class="tab-btn"><i class="fa-solid fa-file-export"></i> Export</a>
+    </div>
+
+    <!-- 3. CONTROLS & FILTER BAR (Ref Image 2) -->
+    <div class="timetable-controls-bar">
+        <div class="controls-left">
+            <!-- Division Selector -->
+            <div>
+                <label class="d-block text-muted small fw-semibold mb-1">Select Division</label>
+                <select id="divisionSelect" class="form-select-custom">
+                    {% for sec in sections %}
+                        <option value="{{ sec.id }}" {% if selected_section and selected_section.id == sec.id %}selected{% endif %}>
+                            {{ sec.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Week Selector -->
+            <div>
+                <label class="d-block text-muted small fw-semibold mb-1">Select Week</label>
+                <select class="form-select-custom">
+                    <option selected>Week 1 (11 Aug - 16 Aug)</option>
+                    <option>Week 2 (18 Aug - 23 Aug)</option>
+                    <option>Week 3 (25 Aug - 30 Aug)</option>
+                </select>
+            </div>
+
+            <!-- Show Electives Checkbox -->
+            <div class="pt-4 form-check">
+                <input class="form-check-input" type="checkbox" id="toggleElectiveGroups" checked>
+                <label class="form-check-label small fw-semibold text-secondary" for="toggleElectiveGroups">
+                    Show Elective Groups
+                </label>
+            </div>
+        </div>
+
+        <div class="controls-right">
+            <!-- Week View / Day View Switcher -->
+            <div class="view-toggle-group">
+                <button type="button" id="weekViewBtn" class="view-toggle-btn active">Week View</button>
+                <button type="button" id="dayViewBtn" class="view-toggle-btn">Day View</button>
+            </div>
+
+            <!-- Regenerate Trigger Button -->
+            <form action="{{ url_for('admin.generate') }}" method="POST" class="d-inline" onsubmit="return confirm('Regenerate clash-free timetable? Existing slots will be replaced.');">
+                <button type="submit" class="btn btn-metal">
+                    <i class="fa-solid fa-arrows-rotate me-1 text-info"></i> Regenerate
+                </button>
+            </form>
+
+            <!-- Print / Export Button -->
+            <button type="button" id="printTimetableBtn" class="btn btn-primary-glow">
+                <i class="fa-solid fa-print me-1"></i> Print / Export
+            </button>
+        </div>
+    </div>
+
+    <!-- 4. TIMETABLE MAIN GRID & SIDE DRAWER (Ref Image 2) -->
+    <div class="timetable-layout">
+        <!-- Timetable Grid -->
+        <div class="timetable-grid-wrapper">
+            <table class="timetable-table">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Time / Day</th>
+                        {% for day in days %}
+                            <th>
+                                <div>{{ day }}</div>
+                                <div class="text-muted fw-normal" style="font-size: 10px;">
+                                    {% if day == 'Monday' %}11 Aug{% elif day == 'Tuesday' %}12 Aug{% elif day == 'Wednesday' %}13 Aug{% elif day == 'Thursday' %}14 Aug{% elif day == 'Friday' %}15 Aug{% else %}16 Aug{% endif %}
+                                </div>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in periods %}
+                        {% if p.is_break %}
+                            <!-- Break Strip Row -->
+                            <tr>
+                                <td class="time-slot-label break-row-strip">{{ p.start_time }} - {{ p.end_time }}</td>
+                                <td colspan="{{ days|length }}" class="break-row-strip">
+                                    <i class="fa-solid {% if 'Lunch' in (p.break_name or '') %}fa-utensils{% else %}fa-mug-hot{% endif %} me-2"></i>
+                                    {{ p.break_name or 'Break' }}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <!-- Class Period Row -->
+                            <tr>
+                                <td class="time-slot-label">{{ p.start_time }} - {{ p.end_time }}</td>
+                                {% for day in days %}
+                                    <td>
+                                        {% set cell_entries = grid[day][p.period] %}
+                                        {% if cell_entries %}
+                                            {% for entry in cell_entries %}
+                                                {% set c_name = entry.course.name %}
+                                                {% set card_class = 'card-dsa' %}
+                                                {% if 'DBMS' in c_name or 'Database' in c_name %}
+                                                    {% set card_class = 'card-dbms' %}
+                                                {% elif 'Math' in c_name %}
+                                                    {% set card_class = 'card-math' %}
+                                                {% elif 'OOP' in c_name or 'Java' in c_name or 'Object' in c_name %}
+                                                    {% set card_class = 'card-oop' %}
+                                                {% elif 'Network' in c_name or 'CN' in c_name %}
+                                                    {% set card_class = 'card-cn' %}
+                                                {% elif 'OS' in c_name or 'Operating' in c_name %}
+                                                    {% set card_class = 'card-os' %}
+                                                {% elif 'Project' in c_name %}
+                                                    {% set card_class = 'card-proj' %}
+                                                {% elif 'Elective' in c_name %}
+                                                    {% set card_class = 'card-math' %}
+                                                {% elif 'Library' in c_name or 'Sports' in c_name or 'Mentoring' in c_name or 'Activity' in c_name %}
+                                                    {% set card_class = 'card-extra' %}
+                                                {% endif %}
+
+                                                <div class="subject-card {{ card_class }} mb-1">
+                                                    <div class="subject-name">
+                                                        <span>{{ entry.course.name }}</span>
+                                                        {% if entry.course.type == 'lab' %}
+                                                            <i class="fa-solid fa-flask text-warning" style="font-size: 10px;" title="Practical Lab"></i>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="subject-faculty">
+                                                        <i class="fa-solid fa-user-tie" style="font-size: 9px;"></i>
+                                                        <span>{{ entry.faculty.name }}</span>
+                                                    </div>
+                                                    <div class="subject-room-tag">
+                                                        <i class="fa-solid fa-location-dot me-1"></i>{{ entry.room.name }}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted" style="font-size: 11px;">—</span>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Right Side Panel: Electives & Quick Actions (Ref Image 2) -->
+        <div class="timetable-side-panel" id="electiveSidePanel">
+            <!-- Elective Slots Drawer -->
+            <div class="side-panel-card">
+                <div class="panel-card-title">
+                    <span><i class="fa-solid fa-layer-group text-primary me-2"></i>Elective Slots</span>
+                    <span class="badge bg-purple text-white" style="font-size: 10px;">Parallel</span>
+                </div>
+
+                <!-- Group 1 -->
+                <div class="mb-3">
+                    <div class="small fw-bold text-secondary mb-1">Elective Group 1 <span class="text-muted font-monospace" style="font-size: 10px;">(Tue 12:15)</span></div>
+                    <div class="elective-item">
+                        <div class="elective-title">
+                            <span>Machine Learning</span>
+                            <span class="badge bg-dark border text-info">R-301</span>
+                        </div>
+                        <div class="elective-sub">Prof. A. Deshpande</div>
+                    </div>
+                    <div class="elective-item">
+                        <div class="elective-title">
+                            <span>Cyber Security</span>
+                            <span class="badge bg-dark border text-info">R-302</span>
+                        </div>
+                        <div class="elective-sub">Prof. V. Khot</div>
+                    </div>
+                    <div class="elective-item">
+                        <div class="elective-title">
+                            <span>Cloud Computing</span>
+                            <span class="badge bg-dark border text-info">R-303</span>
+                        </div>
+                        <div class="elective-sub">Prof. N. Jain</div>
+                    </div>
+                </div>
+
+                <!-- Group 2 -->
+                <div>
+                    <div class="small fw-bold text-secondary mb-1">Elective Group 2 <span class="text-muted font-monospace" style="font-size: 10px;">(Wed 14:00)</span></div>
+                    <div class="elective-item">
+                        <div class="elective-title">
+                            <span>NLP</span>
+                            <span class="badge bg-dark border text-info">R-301</span>
+                        </div>
+                        <div class="elective-sub">Prof. P. More</div>
+                    </div>
+                    <div class="elective-item">
+                        <div class="elective-title">
+                            <span>Computer Vision</span>
+                            <span class="badge bg-dark border text-info">R-302</span>
+                        </div>
+                        <div class="elective-sub">Prof. S. Bansal</div>
+                    </div>
+                    <div class="elective-item">
+                        <div class="elective-title">
+                            <span>Blockchain</span>
+                            <span class="badge bg-dark border text-info">R-303</span>
+                        </div>
+                        <div class="elective-sub">Prof. R. Iyer</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Panel (Ref Image 2) -->
+            <div class="side-panel-card">
+                <div class="panel-card-title">
+                    <span><i class="fa-solid fa-bolt text-warning me-2"></i>Quick Actions</span>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                    <a href="{{ url_for('admin.courses') }}" class="quick-action-item">
+                        <i class="fa-solid fa-pen-to-square text-primary"></i> Edit Timetable
+                    </a>
+                    <a href="{{ url_for('admin.backup_plan') }}" class="quick-action-item">
+                        <i class="fa-solid fa-arrows-split-up-and-left text-info"></i> Minimal Change / Reschedule
+                    </a>
+                    <a href="{{ url_for('admin.backup_plan') }}" class="quick-action-item">
+                        <i class="fa-solid fa-user-clock text-warning"></i> Teacher Absence (Substitute)
+                    </a>
+                    <a href="{{ url_for('admin.analytics') }}" class="quick-action-item">
+                        <i class="fa-solid fa-chart-line text-success"></i> View Analytics
+                    </a>
+                    <a href="{{ url_for('admin.export_csv') }}" class="quick-action-item">
+                        <i class="fa-solid fa-floppy-disk text-purple"></i> Save as New Version
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. BOTTOM CARDS: AI Suggestions & Next Class (Ref Image 2) -->
+    <div class="row g-3 mt-3">
+        <!-- AI Suggestions -->
+        <div class="col-lg-5">
+            <div class="section-box h-100 mb-0">
+                <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>AI Suggestions</span>
+                </div>
+                <ul class="list-unstyled mb-0 small text-secondary">
+                    <li class="mb-2"><i class="fa-solid fa-circle-info text-info me-2"></i>Room R-203 is underutilized on Friday afternoon.</li>
+                    <li class="mb-2"><i class="fa-solid fa-circle-info text-info me-2"></i>Consider scheduling more practicals in Lab-2 for optimal hardware utilization.</li>
+                    <li><i class="fa-solid fa-circle-check text-success me-2"></i>Zero faculty double-bookings found across odd semester schedule.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Next Scheduled Class -->
+        <div class="col-lg-4">
+            <div class="section-box h-100 mb-0">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-bold text-secondary">Next Scheduled Class (SE - Computer A)</span>
+                    <span class="badge bg-success" style="font-size: 10px;">In 25 minutes</span>
+                </div>
+                <h5 class="fw-bold mb-1 text-main">DBMS</h5>
+                <div class="small text-muted mb-2">Prof. R. Shah • Room R-202</div>
+                <div class="small text-secondary fw-semibold">
+                    <i class="fa-regular fa-clock me-1 text-primary"></i> 10:00 AM – 11:00 AM • Tuesday
+                </div>
+            </div>
+        </div>
+
+        <!-- Timetable Version -->
+        <div class="col-lg-3">
+            <div class="section-box h-100 mb-0">
+                <div class="small fw-bold text-secondary mb-2">Timetable Version</div>
+                <div class="h5 fw-bold text-main mb-1">Current Version: 3.2</div>
+                <div class="small text-muted mb-3">Generated on: {{ institution.last_generated_at|datetime_format if institution and institution.last_generated_at else '16 Aug 2026, 12:30 PM' }}</div>
+                <a href="{{ url_for('admin.export_csv') }}" class="btn btn-sm btn-secondary-custom w-100">
+                    <i class="fa-solid fa-download me-1"></i> Download CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Syllabus Progress - NovaX{% endblock %}
+{% block page_title %}Course Syllabus Coverage{% endblock %}
+{% block page_subtitle %}Update completed modules and curriculum milestones per batch.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="section-box">
+        <form method="POST" action="{{ url_for('teacher.syllabus_progress') }}">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                <div>
+                    <h5 class="fw-bold text-main mb-0">Assigned Courses & Batches</h5>
+                    <div class="small text-muted">Adjust the sliders to reflect live lecture progress.</div>
+                </div>
+                <button type="submit" class="btn btn-primary-glow">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Save All Progress
+                </button>
+            </div>
+
+            <div class="row g-4">
+                {% for rec in progress_records %}
+                <div class="col-lg-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-card);">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold text-main mb-1">{{ rec.course.name }}</h6>
+                                <span class="badge bg-dark border text-info">[{{ rec.course.code }}]</span>
+                                <span class="badge bg-dark border text-light">{{ rec.section.name }}</span>
+                            </div>
+                            <span class="fs-5 fw-bold text-success" id="val_display_{{ rec.id }}">{{ rec.percentage_covered }}%</span>
+                        </div>
+
+                        <!-- Range Slider -->
+                        <div class="my-3">
+                            <label class="form-label small text-secondary">Completion Progress</label>
+                            <input type="range" class="form-range" min="0" max="100" step="5"
+                                   name="progress_{{ rec.id }}" value="{{ rec.percentage_covered }}"
+                                   oninput="document.getElementById('val_display_{{ rec.id }}').innerText = this.value + '%'">
+                        </div>
+
+                        <div>
+                            <label class="form-label small text-secondary">Key Topics Covered / Next Milestone</label>
+                            <input type="text" name="topics_{{ rec.id }}" class="form-control form-control-sm bg-dark border-secondary text-light" value="{{ rec.topics_covered or '' }}" placeholder="Modules completed...">
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center text-muted p-4">
+                    No courses currently assigned in the active timetable.
+                </div>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

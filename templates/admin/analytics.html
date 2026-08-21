@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics & Reports - NovaX{% endblock %}
+{% block page_title %}Analytics & Scheduling Intelligence{% endblock %}
+{% block page_subtitle %}In-depth visualization of faculty teaching load distribution and syllabus completion metrics.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row g-4">
+        <!-- Faculty Teaching Load Bar Chart -->
+        <div class="col-lg-8">
+            <div class="section-box h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-main mb-0"><i class="fa-solid fa-chart-column text-primary me-2"></i>Weekly Teaching Hours per Faculty</h5>
+                    <span class="badge bg-dark border text-light">Target Cap: 18 hrs</span>
+                </div>
+                <div style="height: 320px; position: relative;">
+                    <canvas id="teacherLoadChart" 
+                            data-labels='{{ faculty_names|tojson }}' 
+                            data-loads='{{ faculty_loads|tojson }}'>
+                    </canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Syllabus Progress Distribution Donut Chart -->
+        <div class="col-lg-4">
+            <div class="section-box h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-main mb-0"><i class="fa-solid fa-chart-pie text-success me-2"></i>Syllabus Coverage</h5>
+                </div>
+                <div style="height: 260px; position: relative;">
+                    <canvas id="syllabusDistChart" 
+                            data-counts='{{ dist_counts|tojson }}'>
+                    </canvas>
+                </div>
+                <div class="text-center mt-2 small text-muted">
+                    Syllabus progress brackets across active semester courses.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

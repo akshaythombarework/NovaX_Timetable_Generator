@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Management - NovaX{% endblock %}
+{% block page_title %}Faculty & Instructors{% endblock %}
+{% block page_subtitle %}Manage professors, teaching load limits, and subject specializations.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Total Faculty Members ({{ faculty_members|length }})</h5>
+        <button type="button" class="btn btn-primary-glow" data-bs-toggle="modal" data-bs-target="#addFacultyModal">
+            <i class="fa-solid fa-plus me-1"></i> Add Faculty
+        </button>
+    </div>
+
+    <div class="section-box">
+        <div class="table-responsive">
+            <table class="data-table-custom">
+                <thead>
+                    <tr>
+                        <th>Faculty</th>
+                        <th>Department</th>
+                        <th>Designation</th>
+                        <th>Email</th>
+                        <th>Daily Max</th>
+                        <th>Weekly Max</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in faculty_members %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-circle" data-color="{{ f.color_tag or '#3b82f6' }}">
+                                    {{ f.get_initials() }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ f.name }}</div>
+                                    <div class="text-muted small">{{ f.short_code or 'ID: ' ~ f.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ f.department.name if f.department else 'General' }}</td>
+                        <td>{{ f.designation }}</td>
+                        <td>{{ f.email or '—' }}</td>
+                        <td><span class="badge bg-dark border text-light">{{ f.max_hours_per_day }} hrs/day</span></td>
+                        <td><span class="badge bg-dark border text-info">{{ f.max_hours_per_week }} hrs/week</span></td>
+                        <td class="text-end">
+                            <form action="{{ url_for('admin.delete_faculty', id=f.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this faculty member?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Faculty Modal -->
+<div class="modal fade" id="addFacultyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus text-primary me-2"></i>Add Faculty Member</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.faculty') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Full Name *</label>
+                        <input type="text" name="name" class="form-control bg-dark border-secondary text-light" placeholder="Prof. Jane Doe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Email Address *</label>
+                        <input type="email" name="email" class="form-control bg-dark border-secondary text-light" placeholder="jane@novax.edu" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Department</label>
+                            <select name="department_id" class="form-select bg-dark border-secondary text-light">
+                                {% for d in departments %}
+                                    <option value="{{ d.id }}">{{ d.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Designation</label>
+                            <input type="text" name="designation" class="form-control bg-dark border-secondary text-light" value="Assistant Professor">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Short Code</label>
+                            <input type="text" name="short_code" class="form-control bg-dark border-secondary text-light" placeholder="MAT101">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Daily Max (hrs)</label>
+                            <input type="number" name="max_hours_per_day" class="form-control bg-dark border-secondary text-light" value="4" min="1" max="8">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Weekly Max (hrs)</label>
+                            <input type="number" name="max_hours_per_week" class="form-control bg-dark border-secondary text-light" value="18" min="1" max="40">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-glow">Save Faculty</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

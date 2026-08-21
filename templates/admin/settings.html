@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Institution Settings - NovaX{% endblock %}
+{% block page_title %}Institution Setup & Branding{% endblock %}
+{% block page_subtitle %}Customize college name, academic session, contact details, and institutional logos.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="section-box">
+                <form method="POST" action="{{ url_for('admin.settings') }}" enctype="multipart/form-data">
+                    <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                        <div class="college-crest-icon" style="width: 52px; height: 52px; font-size: 24px;">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-main mb-1">{{ settings.name }}</h5>
+                            <p class="text-muted small mb-0">{{ settings.subtitle }} • {{ settings.academic_year }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label small fw-semibold text-secondary">Institution Name *</label>
+                            <input type="text" name="name" class="form-control bg-dark border-secondary text-light" value="{{ settings.name }}" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold text-secondary">City / State Tag</label>
+                            <input type="text" name="subtitle" class="form-control bg-dark border-secondary text-light" value="{{ settings.subtitle }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Academic Session</label>
+                            <input type="text" name="academic_year" class="form-control bg-dark border-secondary text-light" value="{{ settings.academic_year }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Semester Type</label>
+                            <select name="semester_type" class="form-select bg-dark border-secondary text-light">
+                                <option value="Odd Semester" {% if settings.semester_type == 'Odd Semester' %}selected{% endif %}>Odd Semester (I, III, V, VII)</option>
+                                <option value="Even Semester" {% if settings.semester_type == 'Even Semester' %}selected{% endif %}>Even Semester (II, IV, VI, VIII)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Contact Email</label>
+                            <input type="email" name="contact_email" class="form-control bg-dark border-secondary text-light" value="{{ settings.contact_email }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Update Crest / Logo Image</label>
+                            <input type="file" name="logo" class="form-control bg-dark border-secondary text-light">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold text-secondary">Campus Address</label>
+                        <textarea name="address" rows="2" class="form-control bg-dark border-secondary text-light">{{ settings.address }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary-glow px-4">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Institution Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

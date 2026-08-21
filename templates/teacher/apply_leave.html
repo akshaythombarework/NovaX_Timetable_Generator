@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Apply Leave - NovaX{% endblock %}
+{% block page_title %}Faculty Leave Management{% endblock %}
+{% block page_subtitle %}Submit leave requests and nominate substitute peers.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row g-4">
+        <!-- Leave Application Form -->
+        <div class="col-lg-6">
+            <div class="section-box h-100">
+                <h5 class="fw-bold text-main mb-3"><i class="fa-solid fa-paper-plane text-primary me-2"></i>Apply for Leave</h5>
+                <form method="POST" action="{{ url_for('teacher.apply_leave') }}">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Start Date *</label>
+                            <input type="date" name="start_date" class="form-control bg-dark border-secondary text-light" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">End Date *</label>
+                            <input type="date" name="end_date" class="form-control bg-dark border-secondary text-light" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Preferred Substitute Faculty</label>
+                        <select name="substitute_faculty_id" class="form-select bg-dark border-secondary text-light">
+                            <option value="">-- Let NovaX Auto-Recommend --</option>
+                            {% for f in other_faculty %}
+                                <option value="{{ f.id }}">{{ f.name }} ({{ f.department.name if f.department else 'General' }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold text-secondary">Reason for Leave *</label>
+                        <textarea name="reason" rows="3" class="form-control bg-dark border-secondary text-light" placeholder="Academic conference / medical / personal..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-glow w-100">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Submit Leave Application
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- My Leaves Status -->
+        <div class="col-lg-6">
+            <div class="section-box h-100">
+                <h5 class="fw-bold text-main mb-3"><i class="fa-solid fa-clock-rotate-left text-info me-2"></i>My Leave History</h5>
+                {% if my_leaves %}
+                <div class="list-group list-group-flush">
+                    {% for lv in my_leaves %}
+                    <div class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">{{ lv.start_date|date_format }} – {{ lv.end_date|date_format }}</span>
+                            {% if lv.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif lv.status == 'rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending Admin Approval</span>
+                            {% endif %}
+                        </div>
+                        <div class="small text-secondary mb-1">{{ lv.reason }}</div>
+                        {% if lv.substitute_faculty %}
+                            <div class="small text-muted">Covering Substitute: <strong>{{ lv.substitute_faculty.name }}</strong></div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted p-4">
+                    <i class="fa-solid fa-calendar-check text-success fs-3 mb-2 d-block"></i>
+                    No leave requests found.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

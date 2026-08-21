@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Classes & Divisions - NovaX{% endblock %}
+{% block page_title %}Classes & Divisions{% endblock %}
+{% block page_subtitle %}Manage student batches, division strengths, and academic semesters.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Configured Divisions ({{ sections|length }})</h5>
+        <button type="button" class="btn btn-primary-glow" data-bs-toggle="modal" data-bs-target="#addSectionModal">
+            <i class="fa-solid fa-plus me-1"></i> Add Division
+        </button>
+    </div>
+
+    <div class="section-box">
+        <div class="table-responsive">
+            <table class="data-table-custom">
+                <thead>
+                    <tr>
+                        <th>Division Name</th>
+                        <th>Department</th>
+                        <th>Year & Semester</th>
+                        <th>Student Strength</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sections %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold"><i class="fa-solid fa-users-rectangle text-primary me-2"></i>{{ s.name }}</div>
+                        </td>
+                        <td>{{ s.department.name if s.department else 'General' }}</td>
+                        <td>Year {{ s.year }} • Sem {{ s.semester }}</td>
+                        <td><span class="badge bg-dark border text-light">{{ s.strength }} Students</span></td>
+                        <td class="text-end">
+                            <form action="{{ url_for('admin.delete_section', id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this division?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Section Modal -->
+<div class="modal fade" id="addSectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-layer-group text-primary me-2"></i>Add Division</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.sections') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Division Name *</label>
+                        <input type="text" name="name" class="form-control bg-dark border-secondary text-light" placeholder="e.g. SE - Computer A" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Department</label>
+                        <select name="department_id" class="form-select bg-dark border-secondary text-light">
+                            {% for d in departments %}
+                                <option value="{{ d.id }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Year</label>
+                            <input type="number" name="year" class="form-control bg-dark border-secondary text-light" value="2" min="1" max="4">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Semester</label>
+                            <input type="number" name="semester" class="form-control bg-dark border-secondary text-light" value="3" min="1" max="8">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Strength</label>
+                            <input type="number" name="strength" class="form-control bg-dark border-secondary text-light" value="60" min="10" max="150">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-glow">Save Division</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

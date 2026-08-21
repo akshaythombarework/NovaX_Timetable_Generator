@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NovaX - Smart Timetable Management{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Custom Style & Animation Sheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="app-wrapper">
+        {% if current_user.is_authenticated and request.endpoint != 'auth.login' %}
+        <!-- SIDEBAR (Ref Images 1 & 2) -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fa-solid fa-shapes"></i>
+                </div>
+                <div>
+                    <div class="sidebar-title">NovaX</div>
+                    <div class="sidebar-subtitle">Smart Timetable Management</div>
+                </div>
+            </div>
+
+            <!-- User Profile Chip -->
+            <div class="sidebar-user-chip">
+                <div class="user-avatar-badge">
+                    {% if current_user.role == 'admin' %}
+                        <i class="fa-solid fa-user-shield"></i>
+                    {% elif current_user.role == 'teacher' %}
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    {% else %}
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    {% endif %}
+                </div>
+                <div class="user-info">
+                    <div class="user-info-name">
+                        {{ current_user.username }}
+                        {% if current_user.role == 'admin' %}
+                            <i class="fa-solid fa-circle-check text-primary" style="font-size: 11px;"></i>
+                        {% endif %}
+                    </div>
+                    <div class="user-info-role">{{ current_user.role.capitalize() }}</div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav">
+                {% if current_user.role == 'admin' %}
+                    <div class="nav-section-title">Main Menu</div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="nav-link-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-table-columns"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('admin.settings') }}" class="nav-link-item {% if request.endpoint == 'admin.settings' %}active{% endif %}">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Institution Setup</span>
+                    </a>
+                    <a href="{{ url_for('admin.faculty') }}" class="nav-link-item {% if request.endpoint == 'admin.faculty' %}active{% endif %}">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Faculty + Subjects</span>
+                    </a>
+                    <a href="{{ url_for('admin.courses') }}" class="nav-link-item {% if request.endpoint == 'admin.courses' %}active{% endif %}">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Courses & Baskets</span>
+                    </a>
+                    <a href="{{ url_for('admin.sections') }}" class="nav-link-item {% if request.endpoint == 'admin.sections' %}active{% endif %}">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Classes / Divisions</span>
+                    </a>
+                    <a href="{{ url_for('admin.rooms') }}" class="nav-link-item {% if request.endpoint == 'admin.rooms' %}active{% endif %}">
+                        <i class="fa-solid fa-door-open"></i>
+                        <span>Rooms / Labs</span>
+                    </a>
+                    <a href="{{ url_for('admin.time_slots') }}" class="nav-link-item {% if request.endpoint == 'admin.time_slots' %}active{% endif %}">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Time Slots</span>
+                    </a>
+
+                    <div class="nav-section-title">Timetable</div>
+                    <a href="{{ url_for('admin.timetable') }}" class="nav-link-item {% if request.endpoint == 'admin.timetable' %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>Generated Timetable</span>
+                    </a>
+                    <a href="{{ url_for('admin.backup_plan') }}" class="nav-link-item {% if request.endpoint == 'admin.backup_plan' %}active{% endif %}">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Backup / Substitute Plan</span>
+                        <span class="nav-badge badge-green">AI</span>
+                    </a>
+
+                    <div class="nav-section-title">Management & Reports</div>
+                    <a href="{{ url_for('admin.analytics') }}" class="nav-link-item {% if request.endpoint == 'admin.analytics' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Analytics & Reports</span>
+                    </a>
+                    <a href="{{ url_for('admin.leaves') }}" class="nav-link-item {% if request.endpoint == 'admin.leaves' %}active{% endif %}">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                        <span>Leaves & Substitutions</span>
+                        {% if pending_leaves_count > 0 %}
+                            <span class="nav-badge badge-danger">{{ pending_leaves_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin.academic_calendar') }}" class="nav-link-item {% if request.endpoint == 'admin.academic_calendar' %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span>Academic Calendar</span>
+                    </a>
+
+                {% elif current_user.role == 'teacher' %}
+                    <div class="nav-section-title">Teacher Menu</div>
+                    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link-item {% if request.endpoint == 'teacher.dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-table-columns"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('teacher.timetable') }}" class="nav-link-item {% if request.endpoint == 'teacher.timetable' %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>My Timetable</span>
+                    </a>
+                    <a href="{{ url_for('teacher.apply_leave') }}" class="nav-link-item {% if request.endpoint == 'teacher.apply_leave' %}active{% endif %}">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Apply Leave & Backup</span>
+                    </a>
+                    <a href="{{ url_for('teacher.syllabus_progress') }}" class="nav-link-item {% if request.endpoint == 'teacher.syllabus_progress' %}active{% endif %}">
+                        <i class="fa-solid fa-bars-progress"></i>
+                        <span>Syllabus Coverage</span>
+                    </a>
+                    <a href="{{ url_for('teacher.academic_calendar') }}" class="nav-link-item {% if request.endpoint == 'teacher.academic_calendar' %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span>Academic Calendar</span>
+                    </a>
+
+                {% else %}
+                    <div class="nav-section-title">Student Menu</div>
+                    <a href="{{ url_for('student.dashboard') }}" class="nav-link-item {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-table-columns"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('student.timetable') }}" class="nav-link-item {% if request.endpoint == 'student.timetable' %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>Class Timetable</span>
+                    </a>
+                    <a href="{{ url_for('student.academic_calendar') }}" class="nav-link-item {% if request.endpoint == 'student.academic_calendar' %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span>Academic Calendar</span>
+                    </a>
+                {% endif %}
+            </nav>
+
+            <!-- NovaX AI Promo Badge -->
+            <div class="sidebar-ai-card">
+                <div class="ai-card-header">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>NovaX AI</span>
+                </div>
+                <div class="ai-card-text">
+                    AI-powered scheduling engine with automated substitute recommendations.
+                </div>
+            </div>
+
+            <!-- Footer Theme Switcher & Logout -->
+            <div class="sidebar-footer">
+                <div class="theme-toggle-pill mb-2">
+                    <span><i class="fa-solid fa-moon me-2 text-warning"></i> Dark Theme</span>
+                    <div class="form-check form-switch m-0 p-0">
+                        <input class="form-check-input" type="checkbox" id="themeToggle" checked style="cursor: pointer;">
+                    </div>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link-item text-danger m-0 p-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- MAIN CONTAINER -->
+        <main class="app-main {% if not current_user.is_authenticated or request.endpoint == 'auth.login' %}app-main-unauth{% endif %}">
+            {% if current_user.is_authenticated and request.endpoint != 'auth.login' %}
+            <!-- TOPBAR (Ref Images 1 & 2) -->
+            <header class="app-topbar">
+                <div class="topbar-left">
+                    <div>
+                        <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+                        <div class="page-subtitle">{% block page_subtitle %}Academic Year: {{ institution.academic_year if institution else '2026-27' }}{% endblock %}</div>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <!-- Academic Year Badge -->
+                    <div class="academic-year-pill d-none d-md-flex">
+                        <i class="fa-regular fa-calendar-days text-primary"></i>
+                        <span>{{ institution.academic_year if institution else 'Academic Year: 2026-27' }}</span>
+                    </div>
+
+                    <!-- Institution Badge -->
+                    <div class="institution-badge d-none d-lg-flex">
+                        <div class="college-crest-icon">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <div>{{ institution.name if institution else 'ABC Engineering College' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Icon -->
+                    <a href="{{ url_for('admin.leaves') if current_user.role == 'admin' else '#' }}" class="icon-btn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        {% if pending_leaves_count > 0 %}
+                            <span class="badge-dot"></span>
+                        {% endif %}
+                    </a>
+                </div>
+            </header>
+            {% endif %}
+
+            <!-- FLASH NOTIFICATIONS -->
+            <div class="container-fluid px-4 pt-3">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible alert-auto-dismiss fade show shadow-sm" role="alert">
+                                <strong>{% if category == 'success' %}✓ Success: {% elif category == 'danger' %}⚠ Error: {% else %}ℹ Notice: {% endif %}</strong> {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- PAGE CONTENT INJECTION -->
+            <div class="app-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        if (typeof AOS !== 'undefined') {
+            AOS.init({ duration: 600, once: true });
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/timetable.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

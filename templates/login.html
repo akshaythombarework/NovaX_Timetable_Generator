@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to NovaX - Select Portal & Login{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Top Right Theme Switcher on Login Page -->
+    <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-sm btn-secondary-custom rounded-pill" onclick="const current = document.documentElement.getAttribute('data-theme'); const next = current === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', next); localStorage.setItem('novax-theme', next);">
+            <i class="fa-solid fa-circle-half-stroke me-1 text-warning"></i> Toggle Theme
+        </button>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-9 col-lg-10">
+            <!-- Brand Header -->
+            <div class="text-center mb-4">
+                <div class="sidebar-logo mx-auto mb-3" style="width: 58px; height: 58px; font-size: 28px;">
+                    <i class="fa-solid fa-shapes"></i>
+                </div>
+                <h1 class="fw-bold mb-1 text-main">NovaX</h1>
+                <p class="text-secondary">Smart Timetable Management & Automated Scheduling Platform</p>
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-dark border border-secondary border-opacity-50 small text-muted">
+                    <i class="fa-solid fa-graduation-cap text-primary"></i>
+                    <span>ABC Engineering College • Academic Year 2026–27</span>
+                </div>
+            </div>
+
+            <!-- 1. THREE ROLE PORTAL CARDS (1-Click Instant Entry) -->
+            <h5 class="fw-bold text-main mb-3 text-center">
+                <i class="fa-solid fa-door-open text-primary me-2"></i>Select Portal to Enter:
+            </h5>
+
+            <div class="row g-3 mb-5">
+                <!-- Admin Card -->
+                <div class="col-md-4">
+                    <div class="section-box h-100 p-4 text-center d-flex flex-column justify-content-between transition-card" style="border-top: 4px solid var(--primary);">
+                        <div>
+                            <div class="metric-icon icon-purple mx-auto mb-3" style="width: 52px; height: 52px; font-size: 24px;">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <h5 class="fw-bold text-main mb-1">Admin Portal</h5>
+                            <div class="badge bg-primary bg-opacity-25 text-primary border border-primary mb-3">Administrator</div>
+                            <p class="small text-muted mb-3">
+                                Generate clash-free schedules, manage backup plans, allocate rooms, and track analytics.
+                            </p>
+                        </div>
+                        <a href="{{ url_for('auth.demo_login', role='admin') }}" class="btn btn-primary-glow w-100 py-2 fw-bold">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Enter Admin Portal
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Teacher Card -->
+                <div class="col-md-4">
+                    <div class="section-box h-100 p-4 text-center d-flex flex-column justify-content-between transition-card" style="border-top: 4px solid var(--success);">
+                        <div>
+                            <div class="metric-icon icon-green mx-auto mb-3" style="width: 52px; height: 52px; font-size: 24px;">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                            <h5 class="fw-bold text-main mb-1">Teacher Portal</h5>
+                            <div class="badge bg-success bg-opacity-25 text-success border border-success mb-3">Faculty Member</div>
+                            <p class="small text-muted mb-3">
+                                View assigned lectures, submit leave requests with substitute suggestions, and update syllabus coverage.
+                            </p>
+                        </div>
+                        <a href="{{ url_for('auth.demo_login', role='teacher') }}" class="btn btn-metal w-100 py-2 fw-bold" style="border-color: rgba(16, 185, 129, 0.4);">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-2 text-success"></i> Enter Teacher Portal
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card -->
+                <div class="col-md-4">
+                    <div class="section-box h-100 p-4 text-center d-flex flex-column justify-content-between transition-card" style="border-top: 4px solid var(--info);">
+                        <div>
+                            <div class="metric-icon icon-blue mx-auto mb-3" style="width: 52px; height: 52px; font-size: 24px;">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <h5 class="fw-bold text-main mb-1">Student Portal</h5>
+                            <div class="badge bg-info bg-opacity-25 text-info border border-info mb-3">Student</div>
+                            <p class="small text-muted mb-3">
+                                Check division timetables, upcoming class countdowns, and official exam/event calendars.
+                            </p>
+                        </div>
+                        <a href="{{ url_for('auth.demo_login', role='student') }}" class="btn btn-metal w-100 py-2 fw-bold" style="border-color: rgba(14, 165, 233, 0.4);">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-2 text-info"></i> Enter Student Portal
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. MANUAL LOGIN FORM SECTION -->
+            <div class="row justify-content-center">
+                <div class="col-md-7">
+                    <div class="glass-card p-4 p-md-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                            <i class="fa-solid fa-key text-warning"></i>
+                            <h6 class="fw-bold mb-0 text-main">Or Sign In with Credentials</h6>
+                        </div>
+
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">Username or Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-user"></i></span>
+                                    <input type="text" name="username_or_email" class="form-control bg-dark border-secondary text-light" placeholder="admin@novax.edu" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-lock"></i></span>
+                                    <input type="password" name="password" class="form-control bg-dark border-secondary text-light" placeholder="••••••••" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold text-secondary">Portal Role</label>
+                                <select name="role" class="form-select bg-dark border-secondary text-light">
+                                    <option value="admin">Administrator</option>
+                                    <option value="teacher">Faculty / Teacher</option>
+                                    <option value="student">Student</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-secondary-custom w-100 py-2 fw-bold">
+                                <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Log In
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

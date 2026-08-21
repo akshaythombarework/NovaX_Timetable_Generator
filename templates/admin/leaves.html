@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Leaves & Substitutions - NovaX{% endblock %}
+{% block page_title %}Leave & Substitute Approvals{% endblock %}
+{% block page_subtitle %}Review faculty leave applications and confirm automated substitute allocations.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Pending Requests Section -->
+    <div class="section-box mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold mb-0 text-main"><i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Pending Leave Requests ({{ pending_leaves|length }})</h5>
+        </div>
+
+        {% if pending_leaves %}
+        <div class="table-responsive">
+            <table class="data-table-custom">
+                <thead>
+                    <tr>
+                        <th>Faculty</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                        <th>Proposed Substitute</th>
+                        <th>Action Remark</th>
+                        <th class="text-end">Decision</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lv in pending_leaves %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-circle" data-color="{{ lv.faculty.color_tag or '#3b82f6' }}">
+                                    {{ lv.faculty.get_initials() }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ lv.faculty.name }}</div>
+                                    <div class="text-muted small">{{ lv.faculty.department.name if lv.faculty.department else 'General' }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ lv.start_date|date_format }}</div>
+                            <div class="text-muted small">to {{ lv.end_date|date_format }}</div>
+                        </td>
+                        <td>{{ lv.reason }}</td>
+                        <td>
+                            <form id="approve_form_{{ lv.id }}" action="{{ url_for('admin.update_leave', id=lv.id, action='approve') }}" method="POST">
+                                <select name="substitute_faculty_id" class="form-select form-select-sm bg-dark border-secondary text-light" style="max-width: 180px;">
+                                    {% for f in faculty_list %}
+                                        {% if f.id != lv.faculty_id %}
+                                            <option value="{{ f.id }}" {% if lv.substitute_faculty_id == f.id %}selected{% endif %}>
+                                                {{ f.name }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                        </td>
+                        <td>
+                            <input type="text" name="admin_remark" form="approve_form_{{ lv.id }}" class="form-control form-control-sm bg-dark border-secondary text-light" placeholder="Approved by Admin">
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-1">
+                                <button type="submit" form="approve_form_{{ lv.id }}" class="btn btn-sm btn-success" title="Approve & Send Email to Substitute">
+                                    <i class="fa-solid fa-check me-1"></i> Approve
+                                </button>
+                            </form>
+                                <form action="{{ url_for('admin.update_leave', id=lv.id, action='reject') }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject Leave">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-3 text-center text-muted">
+            <i class="fa-solid fa-circle-check text-success fs-4 mb-2 d-block"></i>
+            All leave requests have been reviewed! No pending applications.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Past / Reviewed Leaves -->
+    <div class="section-box">
+        <h5 class="fw-bold mb-3 text-main"><i class="fa-solid fa-history text-secondary me-2"></i>Past Leave History</h5>
+        <div class="table-responsive">
+            <table class="data-table-custom">
+                <thead>
+                    <tr>
+                        <th>Faculty</th>
+                        <th>Dates</th>
+                        <th>Reason</th>
+                        <th>Substitute Faculty</th>
+                        <th>Status</th>
+                        <th>Admin Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lv in past_leaves %}
+                    <tr>
+                        <td><span class="fw-bold">{{ lv.faculty.name }}</span></td>
+                        <td>{{ lv.start_date|date_format }} to {{ lv.end_date|date_format }}</td>
+                        <td>{{ lv.reason }}</td>
+                        <td>{{ lv.substitute_faculty.name if lv.substitute_faculty else '—' }}</td>
+                        <td>
+                            {% if lv.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ lv.admin_remark or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

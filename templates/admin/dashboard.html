@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - NovaX{% endblock %}
+{% block page_title %}Admin Overview & Analytics{% endblock %}
+{% block page_subtitle %}Plan, prioritize, and generate clash-free college schedules with ease.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top Metric Stats Cards -->
+    <div class="metrics-bar">
+        <div class="metric-card">
+            <div class="metric-icon icon-green"><i class="fa-solid fa-users"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Total Faculty</div>
+                <div class="metric-value">{{ total_faculty }}</div>
+                <div class="metric-subtext text-success">Active Instructors</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon icon-blue"><i class="fa-solid fa-book-open"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Total Courses</div>
+                <div class="metric-value">{{ total_courses }}</div>
+                <div class="metric-subtext text-info">Theory, Labs & Electives</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon icon-purple"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Divisions</div>
+                <div class="metric-value">{{ total_sections }}</div>
+                <div class="metric-subtext text-purple">Across Departments</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon icon-orange"><i class="fa-solid fa-door-open"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Rooms & Labs</div>
+                <div class="metric-value">{{ rooms_used_count }}/{{ total_rooms }}</div>
+                <div class="metric-subtext text-warning">{{ room_utilization }}% Utilization</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon icon-red"><i class="fa-solid fa-bullseye"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Schedule Clashes</div>
+                <div class="metric-value text-success">0</div>
+                <div class="metric-subtext text-success">Clash-Free Matrix</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Middle Row: Workload Table & AI Recommendations -->
+    <div class="row g-4 mb-4">
+        <!-- Faculty Workload Distribution Table -->
+        <div class="col-lg-8">
+            <div class="section-box h-100 mb-0">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0 text-main"><i class="fa-solid fa-chalkboard-user text-primary me-2"></i>Faculty Workload & Teaching Hours</h5>
+                    <a href="{{ url_for('admin.faculty') }}" class="btn btn-sm btn-secondary-custom">View All Faculty</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table-custom">
+                        <thead>
+                            <tr>
+                                <th>Faculty</th>
+                                <th>Department</th>
+                                <th>Assigned Hours</th>
+                                <th>Syllabus Progress</th>
+                                <th>Leaves Approved</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in faculty_workloads %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-circle" data-color="{{ item.faculty.color_tag or '#3b82f6' }}" style="width: 28px; height: 28px; font-size: 10px;">
+                                            {{ item.faculty.get_initials() }}
+                                        </div>
+                                        <span class="fw-bold">{{ item.faculty.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ item.faculty.department.name if item.faculty.department else 'General' }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-dark border text-light">{{ item.assigned }}/{{ item.max_hours }} hrs</span>
+                                        <div class="progress flex-grow-1" style="height: 5px; width: 60px; background: rgba(255,255,255,0.1);">
+                                            <div class="progress-bar bg-info" data-width="{{ (item.assigned / item.max_hours * 100)|round }}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="small fw-bold">{{ item.avg_progress }}%</span>
+                                        <div class="progress flex-grow-1" style="height: 5px; width: 50px; background: rgba(255,255,255,0.1);">
+                                            <div class="progress-bar bg-success" data-width="{{ item.avg_progress }}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ item.leaves_approved }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Scheduling Assistant & Quick Actions -->
+        <div class="col-lg-4">
+            <div class="section-box h-100 mb-0 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa-solid fa-robot text-primary fs-5"></i>
+                        <h5 class="fw-bold mb-0 text-main">NovaX AI Assistant</h5>
+                    </div>
+
+                    <div class="p-3 rounded-3 mb-3" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2);">
+                        <div class="small fw-bold text-primary mb-1"><i class="fa-solid fa-lightbulb me-1"></i> Continuous Quality Assessment</div>
+                        <p class="small text-secondary mb-0">
+                            Current quality index is <strong>{{ settings.quality_score }} / 100</strong> with 100% hard constraints satisfied.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="small fw-bold text-secondary mb-2">Smart Recommendations:</div>
+                        <ul class="list-unstyled small text-muted">
+                            {% for sugg in ai_suggestions %}
+                            <li class="mb-2 d-flex align-items-start gap-2">
+                                <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                                <span>{{ sugg }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.timetable') }}" class="btn btn-primary-glow">
+                        <i class="fa-solid fa-calendar-days me-2"></i> Open Full Timetable Grid
+                    </a>
+                    <a href="{{ url_for('admin.backup_plan') }}" class="btn btn-metal">
+                        <i class="fa-solid fa-user-clock me-2 text-info"></i> Backup & Substitute Planner
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

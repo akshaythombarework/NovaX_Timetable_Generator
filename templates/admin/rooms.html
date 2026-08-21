@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Rooms & Labs - NovaX{% endblock %}
+{% block page_title %}Rooms & Laboratories{% endblock %}
+{% block page_subtitle %}Manage classrooms, specialized computer labs, and seating capacities.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Configured Rooms ({{ rooms|length }})</h5>
+        <button type="button" class="btn btn-primary-glow" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+            <i class="fa-solid fa-plus me-1"></i> Add Room / Lab
+        </button>
+    </div>
+
+    <div class="section-box">
+        <div class="table-responsive">
+            <table class="data-table-custom">
+                <thead>
+                    <tr>
+                        <th>Room Name</th>
+                        <th>Building / Wing</th>
+                        <th>Type</th>
+                        <th>Seating Capacity</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rooms %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid {% if r.type == 'lab' %}fa-flask text-warning{% else %}fa-chalkboard text-primary{% endif %}"></i>
+                                <span class="fw-bold">{{ r.name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ r.building }}</td>
+                        <td>
+                            {% if r.type == 'lab' %}
+                                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning">Laboratory</span>
+                            {% else %}
+                                <span class="badge bg-primary bg-opacity-25 text-primary border border-primary">Classroom</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-dark border text-light">{{ r.capacity }} Students</span></td>
+                        <td><span class="badge bg-success">Available</span></td>
+                        <td class="text-end">
+                            <form action="{{ url_for('admin.delete_room', id=r.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this room?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal fade" id="addRoomModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-door-open text-primary me-2"></i>Add Room / Lab</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.rooms') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Room Identifier *</label>
+                        <input type="text" name="name" class="form-control bg-dark border-secondary text-light" placeholder="R-201 or Lab-2" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Building / Wing</label>
+                            <input type="text" name="building" class="form-control bg-dark border-secondary text-light" value="Main Academic Block">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Seating Capacity</label>
+                            <input type="number" name="capacity" class="form-control bg-dark border-secondary text-light" value="60" min="10" max="250">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Room Type</label>
+                        <select name="type" class="form-select bg-dark border-secondary text-light">
+                            <option value="classroom">Standard Classroom</option>
+                            <option value="lab">Computer / Hardware Laboratory</option>
+                            <option value="auditorium">Auditorium / Seminar Hall</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-glow">Save Room</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - NovaX{% endblock %}
+{% block page_title %}Instructor Portal: {{ faculty.name }}{% endblock %}
+{% block page_subtitle %}Department of {{ faculty.department.name if faculty.department else 'Engineering' }} • {{ faculty.designation }}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top Metric Stats Cards -->
+    <div class="metrics-bar">
+        <div class="metric-card">
+            <div class="metric-icon icon-blue"><i class="fa-solid fa-chalkboard-user"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Assigned Classes</div>
+                <div class="metric-value">{{ assigned_count }}/{{ faculty.max_hours_per_week }}</div>
+                <div class="metric-subtext text-info">Weekly Load</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon icon-green"><i class="fa-solid fa-bars-progress"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Avg Syllabus Coverage</div>
+                <div class="metric-value text-success">{{ avg_syllabus }}%</div>
+                <div class="metric-subtext text-muted">Across All Batches</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon icon-purple"><i class="fa-solid fa-envelope-circle-check"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Leaves Approved</div>
+                <div class="metric-value">{{ leaves_approved }}</div>
+                <div class="metric-subtext text-purple">{{ leaves_pending }} Pending</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon icon-orange"><i class="fa-solid fa-user-clock"></i></div>
+            <div class="metric-info">
+                <div class="metric-label">Substitutions Done</div>
+                <div class="metric-value">{{ substitutions|length }}</div>
+                <div class="metric-subtext text-warning">Covered for Peers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Schedule & Quick Actions -->
+    <div class="row g-4 mb-4">
+        <!-- Today's Teaching Schedule -->
+        <div class="col-lg-8">
+            <div class="section-box h-100 mb-0">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-main mb-0">
+                        <i class="fa-regular fa-calendar-check text-primary me-2"></i>Today's Lecture Schedule ({{ today_day }})
+                    </h5>
+                    <a href="{{ url_for('teacher.timetable') }}" class="btn btn-sm btn-secondary-custom">View Full Week</a>
+                </div>
+
+                {% if today_slots %}
+                <div class="table-responsive">
+                    <table class="data-table-custom">
+                        <thead>
+                            <tr>
+                                <th>Period / Time</th>
+                                <th>Course Title</th>
+                                <th>Division</th>
+                                <th>Room</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in today_slots %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold">{{ entry.time_slot.start_time }} – {{ entry.time_slot.end_time }}</span>
+                                    <div class="small text-muted">Period {{ entry.time_slot.period }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ entry.course.name }}</div>
+                                    <div class="small text-muted">[{{ entry.course.code }}]</div>
+                                </td>
+                                <td><span class="badge bg-dark border text-light">{{ entry.section.name }}</span></td>
+                                <td><span class="badge bg-dark border text-info">{{ entry.room.name }}</span></td>
+                                <td>
+                                    {% if entry.course.type == 'lab' %}
+                                        <span class="badge bg-warning text-dark">Practical</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">Theory</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fa-solid fa-mug-hot text-primary fs-3 mb-2 d-block"></i>
+                    No lectures scheduled for today! Enjoy your prep and research hours.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Weekly Distribution Chart & Actions -->
+        <div class="col-lg-4">
+            <div class="section-box h-100 mb-0 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold text-main mb-3"><i class="fa-solid fa-chart-simple text-success me-2"></i>Weekly Load</h5>
+                    <div style="height: 180px; position: relative;">
+                        <canvas id="teacherWeeklyChart"
+                                data-days='{{ days|tojson }}'
+                                data-lectures='{{ lectures_per_day|tojson }}'>
+                        </canvas>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{{ url_for('teacher.apply_leave') }}" class="btn btn-primary-glow">
+                        <i class="fa-solid fa-paper-plane me-2"></i> Apply for Leave
+                    </a>
+                    <a href="{{ url_for('teacher.syllabus_progress') }}" class="btn btn-metal">
+                        <i class="fa-solid fa-sliders me-2 text-info"></i> Update Syllabus Coverage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

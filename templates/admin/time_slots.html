@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Time Slots - NovaX{% endblock %}
+{% block page_title %}Time Slots & Breaks{% endblock %}
+{% block page_subtitle %}Configure lecture periods, short breaks, and lunch timings.{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Configured Slots ({{ slots|length }})</h5>
+        <button type="button" class="btn btn-primary-glow" data-bs-toggle="modal" data-bs-target="#addSlotModal">
+            <i class="fa-solid fa-plus me-1"></i> Add Time Slot
+        </button>
+    </div>
+
+    <div class="section-box">
+        <div class="table-responsive">
+            <table class="data-table-custom">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Period</th>
+                        <th>Timing</th>
+                        <th>Slot Type</th>
+                        <th>Label</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in slots %}
+                    <tr class="{% if s.is_break %}bg-secondary bg-opacity-10{% endif %}">
+                        <td><span class="fw-bold">{{ s.day }}</span></td>
+                        <td><span class="badge bg-dark border text-light">P-{{ s.period }}</span></td>
+                        <td>{{ s.start_time }} – {{ s.end_time }}</td>
+                        <td>
+                            {% if s.is_break %}
+                                <span class="badge bg-warning text-dark"><i class="fa-solid fa-mug-hot me-1"></i>Break Interval</span>
+                            {% else %}
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success">Teaching Period</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ s.break_name or 'Regular Lecture' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Slot Modal -->
+<div class="modal fade" id="addSlotModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-clock text-primary me-2"></i>Add Time Slot</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.time_slots') }}">
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Day *</label>
+                            <select name="day" class="form-select bg-dark border-secondary text-light">
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Period Sequence *</label>
+                            <input type="number" name="period" class="form-control bg-dark border-secondary text-light" value="1" min="1" max="10" required>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Start Time *</label>
+                            <input type="text" name="start_time" class="form-control bg-dark border-secondary text-light" placeholder="09:00 AM" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">End Time *</label>
+                            <input type="text" name="end_time" class="form-control bg-dark border-secondary text-light" placeholder="10:00 AM" required>
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_break" id="isBreakCheck">
+                        <label class="form-check-label small fw-semibold text-secondary" for="isBreakCheck">
+                            Is Break (Short Break / Lunch Break)
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Break Label (Optional)</label>
+                        <input type="text" name="break_name" class="form-control bg-dark border-secondary text-light" placeholder="Lunch Break">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-glow">Save Time Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
